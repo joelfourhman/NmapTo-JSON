@@ -1,0 +1,35 @@
+# parse the nmap.xml into memory
+$output = \parse-nmap.ps1 -path nmap_output.xml
+
+# to verify content of memory and script worked properly
+$output
+
+# to verify object type 
+$output | Get-Member
+
+# if everything looks good
+$output | ConvertTo-Json | Out-File nmap_output.json
+
+# Read JSON off disk and back into memory for parsing, visualization
+$nmap = Get-Content nmap_output.json | Convert-FromJson
+
+
+################# Sample Queries of the data #################
+
+# count all of the hosts found in the nmap scan
+$nmap | Select-Object FDQN,IPv4 | Measure
+
+# to use guid to query data, not as powerful, but easier
+$nmap | Out-GridView
+
+# display hosts found in the nmap scan, sort by FQDN
+$nmap | Select-Object FQDN,IPv4 | Sort-Object -Property FQDN
+
+# display services found on the network in the aggregate, sort by most common services
+$nmap | ForEach-Object { $_.Services.split(":<")[3] } | Group-Object | Sort-Object -Property Count -Descending | Format-Table Count,Name
+
+# display all detected OS's in the nmap data, sorted by most commonly detected
+$nmap | ForEach-Object { $_.OS.split("<")[0] } | Group-Object | Sort-Object -Property Count -Descending | Format-Table -Property Count,Name
+
+# display hosts with specific services (format-table, and select-object may not let you do >3 columns, so use Out-GridView)
+$nmap | Where-Object { $_.Services -like "*openSSH 6.2*" } | Format-Table FQDN,IPv4,OS

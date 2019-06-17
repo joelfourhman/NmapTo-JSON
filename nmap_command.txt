@@ -1,0 +1,1 @@
+nmap -iL targets.txt -sS -sV -O -p- -oX nmap_output --no-stylesheet -T4
